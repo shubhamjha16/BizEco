@@ -16,7 +16,7 @@ const ReportGenerationInputSchema = z.object({
   scenarioOutcomes: z.array(
     z.object({
       scenarioType: z.string().describe('The type of scenario (e.g., Most Probable, Most Dangerous, Best-Case, Wildcard).'),
-      userDecisions: z.record(z.string(), z.string()).describe('A record of the user decisions made in the scenario.'),
+      userDecisions: z.record(z.string(), z.string()).describe('A record of the user decisions made in the scenario, where keys are MCQ IDs and values are the selected answers.'),
       evaluation: z.string().describe('Evaluation of the user decisions in the scenario.'),
     })
   ).describe('An array of scenario outcomes, including the scenario type, user decisions, and evaluation.'),
@@ -43,13 +43,17 @@ const reportGenerationPrompt = ai.definePrompt({
   Scenario Outcomes:
   {{#each scenarioOutcomes}}
   Scenario Type: {{{scenarioType}}}
-  User Decisions: {{JSONstringify userDecisions}}
+  User Decisions (MCQ ID: Answer):
+  {{#each userDecisions}}
+  - {{{@key}}}: {{{this}}}
+  {{/each}}
   Evaluation: {{{evaluation}}}
+
   {{/each}}
 
   Based on the company description and scenario outcomes, generate a report that includes:
   - An evaluation of the user's decision-making in each scenario.
-  - A breakdown of correct vs. incorrect responses (if applicable).
+  - A breakdown of correct vs. incorrect responses (if applicable, based on your expert assessment of the decisions in context).
   - Suggestions for improvement based on the user's answers.
   - Insights on leadership, strategic thinking, and crisis management.
 
