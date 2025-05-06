@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -33,7 +32,7 @@ export default function ScenarioPage() {
     setFinalReport,
     setIsLoading,
     isLoading,
-    generatedScenariosContent
+    generatedScenariosContent // Contains the full AI output { scenario: string, mcqs: MCQ[] }
   } = useAppContext();
 
   const [currentMcqAnswers, setCurrentMcqAnswers] = useState<Record<string, string>>({});
@@ -44,9 +43,7 @@ export default function ScenarioPage() {
       return;
     }
     if (scenarios.length === 0) {
-      // If scenarios are not loaded yet, but companyInfo exists, it might be loading or user navigated directly.
-      // Redirect to flowchart if we expect scenarios to be there from a previous step.
-      if (router.asPath !== '/flowchart') { // Prevent redirect loop if already on flowchart
+      if (router.asPath !== '/flowchart') { 
          router.push("/flowchart");
       }
       return;
@@ -95,12 +92,13 @@ export default function ScenarioPage() {
 
     setIsLoading(true);
     try {
-      const scenarioContent = generatedScenariosContent[currentScenario.type]?.scenario || currentScenario.description;
+      // Use the AI-generated scenario text from context, or fallback to the one in currentScenario
+      const scenarioText = generatedScenariosContent[currentScenario.type]?.scenario || currentScenario.description;
       
       const evaluationInput = {
         companyDescription: companyInfo.description,
         scenarioType: currentScenario.type,
-        scenarioDescription: scenarioContent,
+        scenarioDescription: scenarioText, // Use the actual scenario text shown to the user
         userDecisions: currentMcqAnswers,
       };
       const evaluationResult: EvaluateScenarioDecisionOutput = await evaluateScenarioDecisions(evaluationInput);
@@ -114,15 +112,26 @@ export default function ScenarioPage() {
       if (currentScenarioIndex < scenarios.length - 1) {
         router.push(`/scenarios/${currentScenarioIndex + 1}`);
       } else {
-        // All scenarios completed, generate final report
-        // The last outcome was already added, so we use scenarioOutcomes directly
-        const finalReportInput = {
-          companyDescription: companyInfo.description,
-          scenarioOutcomes: [...scenarioOutcomes, { // Ensure the very last outcome is included for report generation
+        // Ensure the latest outcome is included for the report
+        const updatedOutcomes = [...scenarioOutcomes];
+        const existingOutcomeIndex = updatedOutcomes.findIndex(o => o.scenarioType === currentScenario.type);
+        if (existingOutcomeIndex > -1) {
+          updatedOutcomes[existingOutcomeIndex] = {
             scenarioType: currentScenario.type,
             userDecisions: currentMcqAnswers,
             evaluation: evaluationResult.evaluation,
-          }],
+          };
+        } else {
+          updatedOutcomes.push({
+            scenarioType: currentScenario.type,
+            userDecisions: currentMcqAnswers,
+            evaluation: evaluationResult.evaluation,
+          });
+        }
+        
+        const finalReportInput = {
+          companyDescription: companyInfo.description,
+          scenarioOutcomes: updatedOutcomes,
         };
         const reportData = await generateReport(finalReportInput);
         setFinalReport(reportData.report);
@@ -143,6 +152,8 @@ export default function ScenarioPage() {
   };
   
   const ScenarioIcon = currentScenario.icon;
+  // Scenario description should come from generatedScenariosContent if available, otherwise from currentScenario
+  const displayScenarioDescription = generatedScenariosContent[currentScenario.type]?.scenario || currentScenario.description;
 
   return (
     <div className="container mx-auto min-h-screen p-4 sm:p-8 flex flex-col items-center">
@@ -163,14 +174,14 @@ export default function ScenarioPage() {
           <Card className="bg-secondary/10 p-6 rounded-lg shadow-inner">
             <h3 className="text-xl font-semibold text-primary mb-2">Scenario Details</h3>
             <p className="text-foreground whitespace-pre-line leading-relaxed">
-              {generatedScenariosContent[currentScenario.type]?.scenario || currentScenario.description}
+              {displayScenarioDescription}
             </p>
           </Card>
 
           <div>
             <h3 className="text-2xl font-semibold mb-4 text-center text-primary">Your Decisions</h3>
             <div className="space-y-8">
-              {currentScenario.mcqs.map((mcq) => (
+              {currentScenario.mcqs.map((mcq: McqType) => ( // Ensure mcq is typed
                 <Card key={mcq.id} className="shadow-lg rounded-lg">
                   <CardContent className="p-6">
                     <Label className="font-medium text-lg mb-4 flex items-center">
@@ -181,7 +192,7 @@ export default function ScenarioPage() {
                             <HelpCircle className="h-4 w-4 ml-2 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Consider the implications of each choice on your company's profile.</p>
+                            <p>Consider the implications of each choice on your company's profile and the current scenario.</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -240,4 +251,3 @@ export default function ScenarioPage() {
     </div>
   );
 }
-

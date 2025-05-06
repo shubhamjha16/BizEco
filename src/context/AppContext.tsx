@@ -1,7 +1,7 @@
-
 "use client";
 
-import type { ScenarioOutput } from "@/ai/flows/scenario-generator";
+// ScenarioOutput now includes MCQs directly from the AI
+import type { ScenarioOutput } from "@/ai/flows/scenario-generator"; 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface CompanyInfo {
@@ -29,8 +29,8 @@ export interface MCQ {
 export interface Scenario {
   type: "Most Probable" | "Most Dangerous" | "Best-Case" | "Wildcard";
   title: string;
-  description: string; // This can be a fallback or summary if AI generation fails
-  mcqs: MCQ[];
+  description: string; // This is the AI-generated scenario text
+  mcqs: MCQ[]; // These are now AI-generated MCQs
   icon: React.ElementType;
 }
 
@@ -63,7 +63,7 @@ interface AppContextType {
   setFinalReport: (report: string | null) => void; // Allow null for reset
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  generatedScenariosContent: Record<string, ScenarioOutput>;
+  generatedScenariosContent: Record<string, ScenarioOutput>; // Stores the full AI output (scenario text + MCQs)
   setGeneratedScenarioContent: (scenarioType: string, content: ScenarioOutput) => void;
   clearGeneratedScenariosContent: () => void; // To reset generated content
   resetSimulation: () => void; // New comprehensive reset function
