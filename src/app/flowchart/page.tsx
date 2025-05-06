@@ -9,11 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle, CheckCircle, BarChart3, TrendingUp, Zap, ShieldAlert, Award, Lightbulb, ChevronRight, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, BarChart3, TrendingUp, Zap, ShieldAlert, DollarSign, Lightbulb, ChevronRight, Loader2 } from "lucide-react"; // Changed Award to DollarSign
 import { Progress } from "@/components/ui/progress";
 import { generateScenario } from "@/ai/flows/scenario-generator";
 import type { ScenarioOutput } from "@/ai/flows/scenario-generator";
-import { generateValidationQuestions } from "@/ai/flows/generate-validation-questions"; // Import the new flow
+import { generateValidationQuestions } from "@/ai/flows/generate-validation-questions"; 
 
 
 const scenarioTypes: Array<"Most Probable" | "Most Dangerous" | "Best-Case" | "Wildcard"> = [
@@ -34,7 +34,7 @@ const scenarioUIDetails: Record<string, { title: string; icon: React.ElementType
   },
   "Best-Case": { 
     title: "Sustaining Success", 
-    icon: Award, 
+    icon: DollarSign, // Changed Award to DollarSign
   },
   "Wildcard": { 
     title: "The Unexpected Twist", 
@@ -190,9 +190,9 @@ export default function FlowchartPage() {
           <Separator className="my-6" />
 
           <div>
-            <h3 className="text-2xl font-semibold mb-4 text-center text-primary">Refine Your Profile</h3>
+            <h3 className="text-2xl font-semibold mb-4 text-center text-primary">Validate Your Profile</h3>
             <p className="text-muted-foreground text-center mb-6">
-              Your answers to these questions will help us get a clearer picture of your company, ensuring the simulation scenarios are as relevant as possible.
+             Your answers help tailor the simulation scenarios.
             </p>
             {loadingValidationMcqs && (
               <div className="flex justify-center items-center my-6">

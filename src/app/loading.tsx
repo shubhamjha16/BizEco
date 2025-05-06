@@ -7,7 +7,7 @@ export default function Loading() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
       <div className="flex items-center space-x-4 mb-8">
         <BrainCircuit className="h-12 w-12 text-primary animate-pulse" />
-        <h1 className="text-3xl font-bold text-primary">BizSim Navigator</h1>
+        <h1 className="text-3xl font-bold text-primary">BizEco</h1>
       </div>
       <div className="w-full max-w-md space-y-6">
         <Skeleton className="h-24 w-full rounded-lg" />

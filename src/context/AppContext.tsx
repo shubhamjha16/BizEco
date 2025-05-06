@@ -4,6 +4,7 @@
 // ScenarioOutput now includes MCQs directly from the AI
 import type { ScenarioOutput } from "@/ai/flows/scenario-generator"; 
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import type { TrendingUp, ShieldAlert, DollarSign, Lightbulb } from "lucide-react"; // Added DollarSign to imports
 
 interface CompanyInfo {
   description: string;
@@ -32,7 +33,7 @@ export interface Scenario {
   title: string;
   description: string; // This is the AI-generated scenario text
   mcqs: MCQ[]; // These are now AI-generated MCQs
-  icon: React.ElementType;
+  icon: typeof TrendingUp | typeof ShieldAlert | typeof DollarSign | typeof Lightbulb; // Updated icon type
 }
 
 export interface ScenarioOutcome {

@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'BizSim Navigator',
+  title: 'BizEco',
   description: 'Navigate your business through dynamic scenarios.',
 };
 

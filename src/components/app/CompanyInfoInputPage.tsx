@@ -80,7 +80,7 @@ export default function CompanyInfoInputPage() {
             <BrainCircuit className="h-12 w-12 text-primary" />
           </div>
           <CardTitle className="text-3xl font-bold tracking-tight">
-            Welcome to BizSim Navigator
+            Welcome to BizEco
           </CardTitle>
           <p className="text-muted-foreground">
             Let's start by understanding your business.

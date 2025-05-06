@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Award, BarChart2, Briefcase, ClipboardList, FileText, Lightbulb, TrendingUp, ShieldAlert } from "lucide-react";
+import { DollarSign, BarChart2, Briefcase, ClipboardList, FileText, Lightbulb, TrendingUp, ShieldAlert } from "lucide-react"; // Changed Award to DollarSign
 import Image from 'next/image';
 
 const scenarioIconsMap: { [key: string]: React.ElementType } = {
   "Most Probable": TrendingUp,
   "Most Dangerous": ShieldAlert,
-  "Best-Case": Award,
+  "Best-Case": DollarSign, // Changed Award to DollarSign
   "Wildcard": Lightbulb,
 };
 
@@ -71,7 +71,7 @@ export default function ReportPage() {
             <ClipboardList className="h-16 w-16 text-primary" />
           </div>
           <CardTitle className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-            BizSim Navigator Final Report
+            BizEco Final Report
           </CardTitle>
           {companyInfo && (
             <CardDescription className="text-lg text-muted-foreground mt-2">
@@ -146,7 +146,7 @@ export default function ReportPage() {
         </CardContent>
       </Card>
        <footer className="text-center mt-12 mb-6">
-        <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} BizSim Navigator. All rights reserved.</p>
+        <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} BizEco. All rights reserved.</p>
       </footer>
     </div>
   );
