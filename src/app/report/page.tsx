@@ -21,33 +21,25 @@ const scenarioIconsMap: { [key: string]: React.ElementType } = {
 
 export default function ReportPage() {
   const router = useRouter();
-  const { companyInfo, finalReport, scenarioOutcomes, isLoading, setIsLoading, setCurrentScenarioIndex, setScenarioOutcomes, setFinalReport: resetFinalReportContext } = useAppContext();
+  const { companyInfo, finalReport, scenarioOutcomes, isLoading, setIsLoading, resetSimulation } = useAppContext();
 
   useEffect(() => {
     if (!companyInfo) {
-      router.push("/"); // Redirect if no company info
+      router.push("/"); 
     }
     if (!finalReport && !isLoading) {
-        // If there's no report and not loading, it might be an old session or direct navigation.
-        // Potentially redirect or show a message. For now, allow but it might be empty.
         console.warn("Report page accessed without a generated report.");
     }
   }, [companyInfo, finalReport, router, isLoading]);
 
   const handleRestart = () => {
     setIsLoading(true);
-    // Reset relevant context states
-    setCurrentScenarioIndex(0);
-    setScenarioOutcomes([]);
-    resetFinalReportContext(null);
-    // Potentially clear other states like mcqAnswers, scenarioDecisions etc.
-    // For now, this is a soft reset, assuming companyInfo remains.
-    // If a full reset is needed, clear companyInfo too or use a dedicated reset function in context.
+    resetSimulation(); 
     router.push("/");
-    setIsLoading(false);
+    // setIsLoading(false); // setLoading(false) is handled in resetSimulation or can be set here if needed after navigation
   };
 
-  if (isLoading) {
+  if (isLoading && !finalReport) { // Show loading only if report is being generated
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="text-center">
@@ -119,19 +111,23 @@ export default function ReportPage() {
                     <CardContent className="p-6 space-y-4">
                       <div>
                         <h4 className="font-semibold text-md text-foreground mb-1">Your Decisions:</h4>
-                        <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 pl-2">
-                          {Object.entries(outcome.userDecisions).map(([mcqId, decision]) => (
-                            <li key={mcqId}>
-                              <span className="font-medium">{mcqId.replace('_q1', '')}:</span> {decision}
-                            </li>
-                          ))}
-                        </ul>
+                        <ScrollArea className="h-auto max-h-32 pr-2"> {/* Added ScrollArea for decisions */}
+                          <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 pl-2">
+                            {Object.entries(outcome.userDecisions).map(([mcqId, decision]) => (
+                              <li key={mcqId}>
+                                <span className="font-medium">{mcqId.replace(/_(q\d+)$/, '')}:</span> {decision}
+                              </li>
+                            ))}
+                          </ul>
+                        </ScrollArea>
                       </div>
                       <div>
                         <h4 className="font-semibold text-md text-foreground mb-1">Evaluation & Insights:</h4>
-                        <p className="text-sm text-muted-foreground whitespace-pre-line leading-normal">
-                          {outcome.evaluation}
-                        </p>
+                         <ScrollArea className="h-auto max-h-48 pr-2"> {/* Added ScrollArea for evaluation */}
+                          <p className="text-sm text-muted-foreground whitespace-pre-line leading-normal">
+                            {outcome.evaluation}
+                          </p>
+                        </ScrollArea>
                       </div>
                     </CardContent>
                   </Card>
@@ -155,4 +151,3 @@ export default function ReportPage() {
     </div>
   );
 }
-

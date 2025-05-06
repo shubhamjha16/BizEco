@@ -9,9 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, CheckCircle, ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, HelpCircle, CheckCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { generateReport } from '@/ai/flows/report-generation'; // Assuming this is the correct path
+import { generateReport } from '@/ai/flows/report-generation';
+import { evaluateScenarioDecisions } from '@/ai/flows/evaluate-scenario-decision';
+import type { EvaluateScenarioDecisionOutput } from '@/ai/flows/evaluate-scenario-decision';
+
 
 export default function ScenarioPage() {
   const router = useRouter();
@@ -37,16 +40,20 @@ export default function ScenarioPage() {
 
   useEffect(() => {
     if (!companyInfo) {
-      router.push("/"); // Redirect if no company info
+      router.push("/"); 
       return;
     }
     if (scenarios.length === 0) {
-      router.push("/flowchart"); // Redirect if scenarios not loaded
+      // If scenarios are not loaded yet, but companyInfo exists, it might be loading or user navigated directly.
+      // Redirect to flowchart if we expect scenarios to be there from a previous step.
+      if (router.asPath !== '/flowchart') { // Prevent redirect loop if already on flowchart
+         router.push("/flowchart");
+      }
       return;
     }
     const id = parseInt(scenarioId, 10);
     if (isNaN(id) || id < 0 || id >= scenarios.length) {
-      router.push("/scenarios/0"); // redirect to first scenario if ID is invalid
+      router.push("/scenarios/0"); 
       return;
     }
     if(id !== currentScenarioIndex) {
@@ -80,16 +87,6 @@ export default function ScenarioPage() {
   const allMcqsAnswered = currentScenario.mcqs.every(mcq => currentMcqAnswers[mcq.id]);
   const progressPercentage = ((currentScenarioIndex + 1) / scenarios.length) * 100;
 
-  // Dummy evaluation logic, replace with AI call
-  const getEvaluationForScenario = (scenarioType: string, decisions: Record<string, string>): string => {
-    // In a real app, this would call an AI model
-    // For now, a simple placeholder
-    const decisionSummary = Object.entries(decisions)
-      .map(([key, value]) => `For ${key}, you chose: ${value}.`)
-      .join(' ');
-    return `Based on your decisions for the ${scenarioType} scenario (${decisionSummary}), your approach shows potential. Consider refining your risk assessment for future challenges. More detailed feedback would typically be AI-generated.`;
-  };
-
   const handleNext = async () => {
     if (!allMcqsAnswered) {
       alert("Please answer all questions for this scenario.");
@@ -97,37 +94,46 @@ export default function ScenarioPage() {
     }
 
     setIsLoading(true);
-    // Simulate AI evaluation for the current scenario's decisions
-    const evaluation = getEvaluationForScenario(currentScenario.type, currentMcqAnswers);
-
-    addScenarioOutcome({
-      scenarioType: currentScenario.type,
-      userDecisions: currentMcqAnswers,
-      evaluation: evaluation, // This would be AI-generated
-    });
-    
-    if (currentScenarioIndex < scenarios.length - 1) {
-      router.push(`/scenarios/${currentScenarioIndex + 1}`);
-    } else {
-      // All scenarios completed, generate final report
-      try {
-        const reportInput = {
+    try {
+      const scenarioContent = generatedScenariosContent[currentScenario.type]?.scenario || currentScenario.description;
+      
+      const evaluationInput = {
+        companyDescription: companyInfo.description,
+        scenarioType: currentScenario.type,
+        scenarioDescription: scenarioContent,
+        userDecisions: currentMcqAnswers,
+      };
+      const evaluationResult: EvaluateScenarioDecisionOutput = await evaluateScenarioDecisions(evaluationInput);
+      
+      addScenarioOutcome({
+        scenarioType: currentScenario.type,
+        userDecisions: currentMcqAnswers,
+        evaluation: evaluationResult.evaluation,
+      });
+      
+      if (currentScenarioIndex < scenarios.length - 1) {
+        router.push(`/scenarios/${currentScenarioIndex + 1}`);
+      } else {
+        // All scenarios completed, generate final report
+        // The last outcome was already added, so we use scenarioOutcomes directly
+        const finalReportInput = {
           companyDescription: companyInfo.description,
-          scenarioOutcomes: [...scenarioOutcomes, { // Add the last outcome
+          scenarioOutcomes: [...scenarioOutcomes, { // Ensure the very last outcome is included for report generation
             scenarioType: currentScenario.type,
             userDecisions: currentMcqAnswers,
-            evaluation: evaluation,
+            evaluation: evaluationResult.evaluation,
           }],
         };
-        const reportData = await generateReport(reportInput);
+        const reportData = await generateReport(finalReportInput);
         setFinalReport(reportData.report);
         router.push("/report");
-      } catch (error) {
-        console.error("Error generating final report:", error);
-        alert("Failed to generate the final report. Please try again.");
       }
+    } catch (error) {
+      console.error("Error processing scenario or generating report:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handlePrevious = () => {
@@ -234,3 +240,4 @@ export default function ScenarioPage() {
     </div>
   );
 }
+
