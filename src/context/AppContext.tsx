@@ -1,3 +1,4 @@
+
 "use client";
 
 // ScenarioOutput now includes MCQs directly from the AI
@@ -49,6 +50,8 @@ interface AppContextType {
   mcqAnswers: Record<string, string>; // For flowchart validation MCQs: questionId -> answer
   setMcqAnswer: (questionId: string, answer: string) => void;
   clearMcqAnswers: () => void; // To reset flowchart answers
+  flowchartValidationMcqs: MCQ[]; // New state for dynamic validation MCQs
+  setFlowchartValidationMcqs: (mcqs: MCQ[]) => void; // Setter for dynamic MCQs
   currentScenarioIndex: number;
   setCurrentScenarioIndex: (index: number) => void;
   scenarios: Scenario[]; 
@@ -75,6 +78,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [companyInfo, setCompanyInfoState] = useState<CompanyInfo | null>(null);
   const [flowchartData, setFlowchartDataState] = useState<FlowchartData | null>(null);
   const [mcqAnswers, setMcqAnswersState] = useState<Record<string, string>>({});
+  const [flowchartValidationMcqs, setFlowchartValidationMcqsState] = useState<MCQ[]>([]); // Initialize new state
   const [currentScenarioIndex, setCurrentScenarioIndexState] = useState<number>(0);
   const [scenarios, setScenariosState] = useState<Scenario[]>([]);
   const [scenarioDecisions, setScenarioDecisionsState] = useState<Record<string, Record<string, string>>>({});
@@ -90,6 +94,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setMcqAnswersState((prev) => ({ ...prev, [questionId]: answer }));
   };
   const clearMcqAnswers = () => setMcqAnswersState({});
+  const setFlowchartValidationMcqs = (mcqs: MCQ[]) => setFlowchartValidationMcqsState(mcqs);
   const setCurrentScenarioIndex = (index: number) => setCurrentScenarioIndexState(index);
   const setScenarios = (newScenarios: Scenario[]) => setScenariosState(newScenarios);
   
@@ -105,7 +110,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const clearScenarioDecisions = () => setScenarioDecisionsState({});
 
   const addScenarioOutcome = (outcome: ScenarioOutcome) => {
-     // Prevent duplicate outcomes for the same scenario type if user goes back and forth
     setScenarioOutcomesState((prev) => {
       const existingOutcomeIndex = prev.findIndex(o => o.scenarioType === outcome.scenarioType);
       if (existingOutcomeIndex > -1) {
@@ -127,18 +131,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const clearGeneratedScenariosContent = () => setGeneratedScenariosContentState({});
 
   const resetSimulation = () => {
-    // Keep companyInfo and flowchartData if user might want to rerun with same base
-    // Or clear them too for a full fresh start:
-    // setCompanyInfoState(null); 
-    // setFlowchartDataState(null);
     clearMcqAnswers();
+    setFlowchartValidationMcqsState([]); // Reset dynamic MCQs
     setCurrentScenarioIndexState(0);
     setScenariosState([]);
     clearScenarioDecisions();
-    setScenarioOutcomesState([]); // Clear previous outcomes
+    setScenarioOutcomesState([]); 
     setFinalReportState(null);
     clearGeneratedScenariosContent();
-    setIsLoadingState(false); // Ensure loading is reset
+    setIsLoadingState(false); 
+    // Optionally keep companyInfo and flowchartData for quicker reruns, or clear them:
+    // setCompanyInfoState(null); 
+    // setFlowchartDataState(null);
   };
 
 
@@ -152,6 +156,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         mcqAnswers,
         setMcqAnswer,
         clearMcqAnswers,
+        flowchartValidationMcqs,
+        setFlowchartValidationMcqs,
         currentScenarioIndex,
         setCurrentScenarioIndex,
         scenarios,
