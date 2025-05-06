@@ -163,8 +163,7 @@ export default function FlowchartPage() {
           
           const baseScenarioMcqs = scenarioDetails[type].mcqs.map(mcq => ({
             ...mcq,
-            // Optionally, add more dynamic elements to MCQs here if needed
-            question: `${mcq.question} (Context: ${scenarioContent.scenario.substring(0,100)}...)` 
+            question: `${mcq.question} (Context: ${scenarioContent.scenario})` 
           }));
 
           return {
